@@ -308,7 +308,6 @@ MIT License.
 ---
 
 <a id="english"></a>
-
 # 🧫 QuPath MxIF Analysis Toolkit（English）
 
 <div align="center">
@@ -335,9 +334,13 @@ MIT License.
 
 ## 🎯 Intended use
 
-This project is built for computational pathology workflows involving multiplex immunofluorescence whole-slide images, with a focus on the tumor-nerve-immune microenvironment around PNI regions.
+This project is designed for computational pathology workflows involving multiplex immunofluorescence (MxIF) whole-slide images, with a focus on the tumor-nerve-immune microenvironment surrounding perineural invasion (PNI) regions.
 
-Manual annotation and visual quality control are expected throughout the workflow.
+The workflow is semi-automated and assumes:
+
+- manual pathological annotations
+- iterative parameter tuning
+- visual quality control throughout the analysis
 
 ---
 
@@ -345,10 +348,18 @@ Manual annotation and visual quality control are expected throughout the workflo
 
 MxIF whole-slide image analysis often suffers from:
 
-- batch effects and autofluorescence
-- inconsistent annotation hierarchy
-- complex nerve-immune spatial organization
-- lack of structured export for downstream spatial analysis
+- batch effects and autofluorescence contamination
+- inconsistent annotation hierarchy organization
+- complex tumor-immune-nerve spatial relationships
+- limited support for downstream spatial feature extraction
+
+Many pathology workflows focus only on segmentation or classification, but real computational pathology pipelines also require:
+
+- annotation management
+- hierarchy repair
+- reproducible export formats
+- spatial distance measurements
+- downstream analysis compatibility
 
 This toolkit aims to bridge:
 
@@ -356,13 +367,299 @@ This toolkit aims to bridge:
 
 ---
 
+## ⚙️ Requirements
+
+| Item | Description |
+|------|------|
+| **QuPath** | v0.5.1 |
+| **Images** | Calibrated MxIF whole-slide images |
+| **Script engine** | Groovy enabled |
+
+### 🧬 Recommended image channels
+
+| Biological target | Default channel |
+|---|---|
+| Nuclei | `DAPI` or `DAPI (C1)` |
+| Immune marker | `Opal 620` |
+| Tumor marker | `Opal 780 (C6)` |
+| Nerve marker | `Opal 480` |
+
+---
+
+## 🏷️ Annotation convention
+
+### Required annotation classes
+
+| Class | Meaning |
+|---|---|
+| `PNI-` | PNI-negative region |
+| `PNI+: Immune Responsive` | PNI-positive region with immune infiltration |
+| `PNI+: Immune Excluded` | PNI-positive region with immune exclusion |
+
+### Optional helper annotations
+
+| Name / Class | Meaning |
+|---|---|
+| `Normalization Patch` | Region for intensity normalization or QC |
+| `dark_ref` | Dark/background reference region |
+| `bright_ref` | Bright/positive reference region |
+| `nerve_regions` | Nerve region annotations |
+
+---
+
+## 🔄 Workflow overview
+
+···mermaid
+flowchart LR
+    A[Manual Annotation] --> B[Normalization / Threshold Anchors]
+    B --> C[DAPI Cell Segmentation]
+    C --> D[Marker-based Cell Classification]
+    D --> E[Nerve Region Organization]
+    E --> F[Spatial Distance Measurement]
+    F --> G[CSV & GeoJSON Export]
+    G --> H[Downstream Spatial Analysis]
+···
+
+> *Visual inspection of segmentation and classification results is strongly recommended.*
+
+---
+
 ## 🚀 Quick Start
 
-1. Draw PNI annotations.
-2. Run segmentation on selected annotations.
-3. Run marker-based classification.
-4. Export measurements.
-5. Perform downstream spatial analysis in Python / R.
+### Step 1 — Draw PNI annotations
+
+Create at least:
+
+- `PNI-`
+- `PNI+: Immune Responsive`
+- `PNI+: Immune Excluded`
+
+Optional helper annotations:
+
+- `Normalization Patch`
+- `dark_ref`
+- `bright_ref`
+- `nerve_regions`
+
+---
+
+### Step 2 — Run cell segmentation
+
+First run:
+
+`scripts/02_cell_segmentation/00_segment_cells_selected_annotations.groovy`
+
+for parameter tuning and visual inspection.
+
+After confirming segmentation quality, run the batch workflow on all target annotations.
+
+---
+
+### Step 3 — Run cell classification
+
+Run:
+
+`scripts/03_cell_classification/01_classify_cd3_cells_selected_annotations.groovy`
+
+to classify immune-positive cells.
+
+---
+
+### Step 4 — Organize nerve regions
+
+Use the nerve-region organization scripts to:
+
+- move nerve annotations into hierarchy
+- repair parent-child relationships
+- prepare downstream spatial analysis
+
+Experimental segmentation scripts are provided under:
+
+`/scripts/experimental/`
+
+---
+
+### Step 5 — Export results
+
+Run:
+
+`scripts/06_export/02_export_project_cell_measurements_batch.groovy`
+
+to export combined project-level measurements.
+
+---
+
+### Step 6 — Downstream analysis
+
+Perform downstream analysis in:
+
+- Python
+- R
+- GeoPandas
+- spatial statistics workflows
+- machine learning pipelines
+
+---
+
+## 🖼️ Example Results
+
+### Cell segmentation
+
+![segmentation](docs/screenshots/cell_segmentation_example.png)
+
+---
+
+### Cell classification
+
+![classification](docs/screenshots/classification_example.png)
+
+---
+
+### QuPath hierarchy organization
+
+![hierarchy](docs/screenshots/hierarchy_example.png)
+
+---
+
+## 📁 Repository structure
+
+···
+QuPath-MxIF-Analysis-Toolkit/
+├── README.md
+├── LICENSE
+├── .gitignore
+├── docs/
+│   ├── annotation_convention.md
+│   ├── channel_convention.md
+│   ├── output_schema.md
+│   ├── troubleshooting.md
+│   └── screenshots/
+├── scripts/
+│   ├── 00_setup/
+│   ├── 01_normalization/
+│   ├── 02_cell_segmentation/
+│   ├── 03_cell_classification/
+│   ├── 04_nerve_region/
+│   ├── 05_spatial_measurement/
+│   ├── 06_export/
+│   ├── 99_debug_utils/
+│   └── experimental/
+···
+
+---
+
+## 🧩 Script modules
+
+### 00_setup – Preparation
+
+Utilities for:
+
+- annotation hierarchy organization
+- counting-box preparation
+- parent-child relationship repair
+- nerve-region hierarchy management
+
+---
+
+### 01_normalization – Normalization
+
+Reference-region-based normalization and threshold estimation.
+
+This module estimates:
+
+- display anchors
+- percentile-based intensity ranges
+- adaptive threshold references
+
+for more stable MxIF analysis.
+
+---
+
+### 02_cell_segmentation – Cell segmentation
+
+DAPI-based nucleus/cell segmentation.
+
+👉 Recommended workflow:
+
+1. run on selected annotations first
+2. visually inspect segmentation quality
+3. then run batch analysis
+
+---
+
+### 03_cell_classification – Cell classification
+
+Marker-intensity-based classification.
+
+Current supported classes include:
+
+- `immune_cell`
+- `tumor_cell`
+- `unclassified`
+- `none`
+
+---
+
+### 04_nerve_region – Nerve regions
+
+Nerve-region segmentation and hierarchy organization.
+
+⚠️ Experimental segmentation modules are included and should always be visually verified before downstream analysis.
+
+---
+
+### 05_spatial_measurement – Spatial measurement
+
+Distance-to-annotation measurements for downstream spatial analysis.
+
+Typical downstream applications:
+
+- immune infiltration analysis
+- tumor-nerve distance analysis
+- graph-based spatial modeling
+- PNI feature engineering
+
+---
+
+### 06_export – Export
+
+Export cell-level measurements and annotation geometries.
+
+| Output file | Description |
+|---|---|
+| `export_cells_by_annotation_*.csv` | Cell measurements grouped by parent PNI annotation |
+| `geojson_<annotation_id>.geojson` | Nerve geometries associated with each annotation |
+| `all_shapes.json` | Exported annotation geometries |
+| `all_cells.csv` | Exported cell measurements |
+| `combined_cell_measurements.csv` | Combined project-level measurements |
+
+---
+
+### 99_debug_utils – Debug utilities
+
+Scripts for cleanup, hierarchy repair, and debugging.
+
+⚠️ Some utilities may:
+
+- delete objects
+- move hierarchy relationships
+- reset classifications
+
+Use carefully.
+
+---
+
+## 🚦 Recommended workflow order
+
+1. Draw or import PNI annotations.
+2. (Optional) Draw normalization and reference annotations.
+3. Run segmentation on selected annotations for tuning.
+4. Run batch segmentation on all target PNI annotations.
+5. Perform marker-based cell classification.
+6. Organize or segment nerve regions.
+7. Compute spatial distance measurements.
+8. Export CSV and GeoJSON outputs.
+9. Perform downstream spatial analysis.
 
 ---
 
@@ -377,6 +674,17 @@ This toolkit aims to bridge:
 
 ---
 
+## ⚠️ Important notes
+
+- Always visually inspect segmentation and classification results.
+- Thresholds are dataset-dependent and require tuning.
+- Channel names may need adjustment for different datasets.
+- Experimental modules are not guaranteed to be robust.
+- Tested primarily on QuPath v0.5.1.
+- This is a research workflow, not a clinical diagnostic pipeline.
+
+---
+
 ## 📜 License
 
 MIT License.
@@ -386,4 +694,3 @@ MIT License.
 ## 📖 Citation
 
 If this toolkit contributes to your research, please cite this repository.
-=======
