@@ -409,7 +409,7 @@ This toolkit aims to bridge:
 
 ## 🔄 Workflow overview
 
-···mermaid
+```mermaid
 flowchart LR
     A[Manual Annotation] --> B[Normalization / Threshold Anchors]
     B --> C[DAPI Cell Segmentation]
@@ -418,7 +418,7 @@ flowchart LR
     E --> F[Spatial Distance Measurement]
     F --> G[CSV & GeoJSON Export]
     G --> H[Downstream Spatial Analysis]
-···
+```
 
 > *Visual inspection of segmentation and classification results is strongly recommended.*
 
@@ -523,7 +523,7 @@ Perform downstream analysis in:
 
 ## 📁 Repository structure
 
-···
+```
 QuPath-MxIF-Analysis-Toolkit/
 ├── README.md
 ├── LICENSE
@@ -544,7 +544,7 @@ QuPath-MxIF-Analysis-Toolkit/
 │   ├── 06_export/
 │   ├── 99_debug_utils/
 │   └── experimental/
-···
+```
 
 ---
 
