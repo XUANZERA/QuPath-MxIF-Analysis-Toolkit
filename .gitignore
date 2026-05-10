@@ -1,0 +1,21 @@
+# QuPath
+*.qpdata
+*.backup
+*.tmp
+
+# Export
+exports/
+output/
+results/
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
